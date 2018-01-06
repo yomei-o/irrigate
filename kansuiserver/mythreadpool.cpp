@@ -44,7 +44,8 @@ either expressed or implied, of the FreeBSD Project.
 #endif
 
 
-#define MAX_THREAD 10
+#define MAX_THREAD 500
+
 
 
 static void** m_func=NULL;
