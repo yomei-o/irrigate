@@ -109,10 +109,7 @@ static void nakusu_sjis(char* p)
 
 
 char* ok_cmd[] = {
-	"settimer",
-	"gettimer",
-	"getstatus",
-	"oneshot",
+	"ls",
 	NULL
 };
 
@@ -139,9 +136,9 @@ static int exec_command(void*vp, const char* cmd)
 	s = (int)vp;
 #ifdef  I_CHECK_CMD
 	if (check_cmd(cmd) == 0) {
-		strcpy(buf, "error command check\n");
-		mywebsocket_send_string(s, buf);
-		return 0;
+		//strcpy(buf, "error command check\n");
+		//mywebsocket_send_string(s, buf);
+		return -1;
 	}
 #endif
 	fp = popen(cmdbuf, POPEN_READMODE);
@@ -172,6 +169,8 @@ static int callback_func(void* vp,int type, void* data, int sz)
 {
 	char* p;
 	int s;
+	int ret;
+
 	s = (int)vp;
 
 	if ((type & 0xf) == 9){
@@ -196,9 +195,10 @@ static int callback_func(void* vp,int type, void* data, int sz)
 		strcpy(tmpbuf, p);
 		//printf("cmd=>>%s<<\n",cmdbuf);
 		//printf("tmp=>>%s<<\n", tmpbuf);
-		//exec_command(vp, cmdbuf);
-
-		exec_command2(vp, cmdbuf);
+		ret=exec_command(vp, cmdbuf);
+		if (ret == -1) {
+			exec_command2(vp, cmdbuf);
+		}
 		strcpy(cmdbuf, tmpbuf);
 
 	}
