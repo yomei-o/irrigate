@@ -6,7 +6,10 @@ extern "C"
 {
 #endif
 
-int gettm(int argc,char* argv[]);
+int hello(int argc, char* argv[]);
+int version(int argc, char* argv[]);
+	
+int gettm(int argc, char* argv[]);
 int settm(int argc,char* argv[]);
 int deltm(int argc, char* argv[]);
 int deltmall(int argc, char* argv[]);

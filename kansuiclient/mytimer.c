@@ -27,6 +27,8 @@
 #define OFFSET_FILE_NAME "mytm_offset.txt"
 #define MAX_NUM_OF_CH 5
 
+#define VERSION_STR "0.0.1"
+
 #define GOTO 3
 //#define I_USE_HEARTBEET
 
@@ -280,6 +282,18 @@ void  mytimer_set_offunc(void  (*pfunc)(int,void*), void* vp)
 //
 // タイマー設定コマンド
 //
+
+int hello(int argc, char *argv[])
+{
+	mychkcmd_print("hello\n");
+	return 0;
+}
+
+int version(int argc, char *argv[])
+{
+	mychkcmd_print(VERSION_STR "\n");
+	return 0;
+}
 
 static int update(void)
 {

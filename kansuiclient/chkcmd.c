@@ -64,6 +64,9 @@ static int dummy(int argc, char* argv[])
 
 struct mychkcmd_list cmd_list[] = {
 #ifdef I_USE_MYTIMER
+	{ "hello", hello },
+	{ "version", version },
+
 	{ "gettmnum", gettmnum },
 	{ "gettm", gettm },
 	{ "settm", settm },
