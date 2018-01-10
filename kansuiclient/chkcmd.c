@@ -58,7 +58,7 @@ static int dummy(int argc, char* argv[])
 		printf("argv[%d]=>>%s<<\n", i,argv[i]);
 	}
 	printf("\n");
-	mychkcmd_print("command not fount");
+	mychkcmd_print("command not found!\n");
 	return 0;
 }
 
@@ -110,7 +110,7 @@ void mychkcmd_execute_command(const char* cmd)
 			return;
 		}
 	}
-	mychkcmd_print("error(102)");
+	mychkcmd_print("error(102)\n");
 }
 
 

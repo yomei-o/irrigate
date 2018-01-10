@@ -193,7 +193,7 @@ static int callback_func(void* vp,int type, void* data, int sz)
 		*p = 0;
 		p++;
 		strcpy(tmpbuf, p);
-		//printf("cmd=>>%s<<\n",cmdbuf);
+		printf("cmd=>>%s<<\n",cmdbuf);
 		//printf("tmp=>>%s<<\n", tmpbuf);
 		ret=exec_command(vp, cmdbuf);
 		if (ret == -1) {

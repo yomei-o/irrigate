@@ -318,7 +318,7 @@ int gettm(int argc, char *argv[])
 	read_timer_file();
 	tt = mytimer_list[ch][a];
 next:
-	sprintf(buf,"gettm_res %d %d %d %d %d",tt.ch,tt.hour,tt.min,tt.sec,tt.duration);
+	sprintf(buf,"gettm_res %d %d %d %d %d\n",tt.ch,tt.hour,tt.min,tt.sec,tt.duration);
 	mychkcmd_print(buf);
 	return 0;
 }
@@ -357,7 +357,7 @@ int settm(int argc, char *argv[])
 	}
 	write_timer_file();
 next:
-	mychkcmd_print("settm_res ok");
+	mychkcmd_print("settm_res ok\n");
 	update();
 
 	return 0;
@@ -385,7 +385,7 @@ int deltm(int argc, char *argv[])
 	write_timer_file();
 
 next:
-	mychkcmd_print("deltm_res ok");
+	mychkcmd_print("deltm_res ok\n");
 	update();
 	return 0;
 }
@@ -396,7 +396,7 @@ int deltmall(int argc, char *argv[])
 	memset(mytimer_list, 0, sizeof(mytimer_list));
 	//print_mytimer();
 	write_timer_file();
-	mychkcmd_print("deltmall_res ok");
+	mychkcmd_print("deltmall_res ok\n");
 	update();
 	return 0;
 }
@@ -419,7 +419,7 @@ int gettmnum(int argc, char *argv[])
 	}
 
 next:
-	sprintf(buf, "gettmnum_res %d", a);
+	sprintf(buf, "gettmnum_res %d\n", a);
 	mychkcmd_print(buf);
 	return 0;
 }
@@ -438,6 +438,7 @@ int gettmstate(int argc, char *argv[])
 		sprintf(tmp, " %d", 1-ch_state[i]);
 		strcat(buf, tmp);
 	}
+	strcat(buf,"\n");
 	mychkcmd_print(buf);
 	return 0;
 }
@@ -460,7 +461,7 @@ int getdate(int argc, char *argv[])
 	ptt = localtime(&t);
 	if (ptt)tt = *ptt;
 
-	sprintf(buf, "getdate_res %d %d %d %d %d %d",
+	sprintf(buf, "getdate_res %d %d %d %d %d %d\n",
 		tt.tm_year+1900,tt.tm_mon+1,tt.tm_mday,
 		tt.tm_hour,tt.tm_min,tt.tm_sec);
 	mychkcmd_print(buf);
@@ -502,10 +503,10 @@ int setdate(int argc, char *argv[])
 	offs = (int)(offs - time(NULL));
 	printf("offs=%d\n",offs);
 	write_offset(offs);
-	mychkcmd_print("setdate_res ok");
+	mychkcmd_print("setdate_res ok\n");
 	return 0;
 end:
-	mychkcmd_print("setdate_res error");
+	mychkcmd_print("setdate_res error\n");
 	return 0;
 }
 
