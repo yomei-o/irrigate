@@ -75,6 +75,8 @@ struct mychkcmd_list cmd_list[] = {
 	{ "gettmstate", gettmstate },
 	{ "getdate", getdate },
 	{ "setdate", setdate },
+
+	{ "getlog", getlog },
 #endif
 	{ "*", dummy },
 	{ NULL,NULL},

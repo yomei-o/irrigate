@@ -19,6 +19,8 @@ int gettmstate(int argc, char* argv[]);
 int getdate(int argc, char* argv[]);
 int setdate(int argc, char* argv[]);
 
+int getlog(int argc, char* argv[]);
+
 int mytimer_init();
 int mytimer_done();
 int mytimer_reset();

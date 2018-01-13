@@ -32,6 +32,7 @@
 #define OFFSET_FILE_NAME "mytm_offset.txt"
 #define MAX_NUM_OF_CH 5
 
+#define MAX_NUM_OF_LOG 100
 #define VERSION_STR "0.0.1"
 
 #define GOTO 3
@@ -78,6 +79,61 @@ static struct  mytimer mytimer_list[MAX_NUM_OF_CH][MAX_NUM_OF_TIMER];
 //タイマーリストループ読み込み用
 static struct mytimer mytimer_list2[MAX_NUM_OF_CH][MAX_NUM_OF_TIMER];
 
+static char s_log[MAX_NUM_OF_LOG][80];
+
+
+//
+//
+//
+
+void add_log(const char* buf_)
+{
+	int i;
+	char buf[256];
+	time_t t;
+	struct tm tt;
+
+	if (buf_ == NULL || strlen(buf_) >= 80)return;
+
+	t = time(NULL);
+	tt = *localtime(&t);
+
+	sprintf(buf, "%04d-%02d-%02d  %02d:%02d:%02d  %s",
+		tt.tm_year + 1900, tt.tm_mon + 1, tt.tm_mday,
+		tt.tm_hour, tt.tm_min, tt.tm_sec, buf_);
+
+	if (strlen(buf) >= 80)return;
+
+	for (i = MAX_NUM_OF_LOG - 1; i >=1; i--)strcpy(s_log[i], s_log[i - 1]);
+	strcpy(s_log[0], buf);
+}
+
+void print_log()
+{
+	int i;
+	for (i = 0; i < MAX_NUM_OF_LOG; i++) {
+		if (s_log[i][0] != 0) {
+			printf("log: %d  %s\n", i, s_log[i]);
+		}
+	}
+	printf("\n");
+}
+
+static void log_onoff(int on,int ch)
+{
+	char buf[256];
+	if (on) {
+		sprintf(buf, "PORT ON   ch=%d",ch);
+	}
+	else {
+		sprintf(buf, "PORT OFF  ch=%d", ch);
+	}
+	add_log(buf);
+	//print_log();
+}
+//
+//
+//
 static void print_mytimer(void)
 {
 	int i, ch;
@@ -551,6 +607,28 @@ end:
 	return 0;
 }
 
+//
+//
+//
+
+
+int getlog(int argc, char *argv[])
+{
+	int n = 0;
+	char buf[256];
+
+	if (argc < 2) {
+		goto next;
+	}
+	sscanf(argv[1], "%d", &n);
+	if (n < 0 || n >= MAX_NUM_OF_LOG) {
+		n = 0;
+	}
+next:
+	sprintf(buf, "getlog_res %s\n", s_log[n]);
+	mychkcmd_print(buf);
+	return 0;
+}
 
 //
 // オンオフをするかどうか判定
@@ -568,15 +646,18 @@ static void check_active(int gsec,int yy,int mm,int dd)
 			ss = mytimer_list2[ch][i].status;
 			if (gsec >= st && gsec < ed &&ss == 0) {
 				if (mytimer_list2[ch][i].year == 0) {
+					log_onoff(1, ch);
 					timer_on(ch);
 					mytimer_list2[ch][i].status = 1;
 				}
 				else if(mytimer_list2[ch][i].year==yy && mytimer_list2[ch][i].mon==mm && mytimer_list2[ch][i].day==dd){
+					log_onoff(1, ch);
 					timer_on(ch);
 					mytimer_list2[ch][i].status = 1;
 				}
 			}
 			if ((gsec < st || gsec >= ed) && ss == 1) {
+				log_onoff(0, ch);
 				timer_off(ch);
 				mytimer_list2[ch][i].status = 0;
 			}
@@ -635,6 +716,7 @@ void mytimer_loop(void* vp)
 	print_mytimer();
 
 	for (i = 0; i < MAX_NUM_OF_CH; i++) {
+		log_onoff(0, i);
 		timer_off(i);
 	}
 #ifdef 	I_USE_TEST_TIME_PTN
