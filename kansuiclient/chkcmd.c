@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #define I_USE_MYTIMER
+#define I_USE_FACTORY_COMMAND
 
 #ifdef _MSC_VER
 #if _MSC_VER >= 1400
@@ -77,6 +78,14 @@ struct mychkcmd_list cmd_list[] = {
 	{ "setdate", setdate },
 
 	{ "getlog", getlog },
+
+#ifdef I_USE_FACTORY_COMMAND
+	{ "getfile", getfile },
+	{ "setfile", setfile },
+	{ "rmfile", rmfile },
+	{ "sync", do_sync },
+#endif
+
 #endif
 	{ "*", dummy },
 	{ NULL,NULL},

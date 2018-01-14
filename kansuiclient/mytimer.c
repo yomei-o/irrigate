@@ -1,4 +1,6 @@
-﻿#include <stdio.h>
+﻿#define I_USE_FACTORY_COMMAND
+
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
@@ -608,7 +610,7 @@ end:
 }
 
 //
-//
+// logging command
 //
 
 
@@ -629,6 +631,121 @@ next:
 	mychkcmd_print(buf);
 	return 0;
 }
+
+
+//
+// Factory command
+//
+
+
+#ifdef I_USE_FACTORY_COMMAND
+int do_sync(int argc, char *argv[])
+{
+	char buf[256];
+	system("sync");
+	system("sync");
+	system("sync");
+	sprintf(buf, "sync_res ok\n");
+	mychkcmd_print(buf);
+	return 0;
+}
+
+#endif
+
+#ifdef I_USE_FACTORY_COMMAND
+int setfile(int argc, char *argv[])
+{
+	char fn[256];
+	char buf[256];
+	char buf2[256];
+	FILE* fp = 0;
+
+	if (argc < 3) {
+		goto next;
+	}
+	fn[0] = 0;
+	buf[0] = 0;
+	sscanf(argv[1], "%s", fn);
+	sscanf(argv[2], "%s", buf);
+
+	if (strstr(fn, "\\") != NULL)goto next;
+	if (strstr(fn, "/") != NULL)goto next;
+	if (strstr(fn, ".txt") == NULL)goto next;
+
+	fp = fopen(fn, "wt");
+	if (fp == NULL)goto next;
+	fprintf(fp, "%s\n", buf);
+	fclose(fp);
+
+next:
+	sprintf(buf2, "setfile_res ok\n");
+	mychkcmd_print(buf2);
+	return 0;
+}
+
+#endif
+
+#ifdef I_USE_FACTORY_COMMAND
+int getfile(int argc, char *argv[])
+{
+	char fn[256];
+	char buf[256];
+	char buf2[256];
+	FILE* fp = 0;
+
+	if (argc < 2) {
+		goto next;
+	}
+	fn[0] = 0;
+	buf[0] = 0;
+	sscanf(argv[1], "%s", fn);
+
+	if (strstr(fn, "\\") != NULL)goto next;
+	if (strstr(fn, "/") != NULL)goto next;
+	if (strstr(fn, ".txt") == NULL)goto next;
+
+	fp = fopen(fn, "rt");
+	if (fp == NULL)goto next;
+	fscanf(fp, "%s", buf);
+	fclose(fp);
+
+next:
+	sprintf(buf2, "getfile_res %s\n", buf);
+	mychkcmd_print(buf2);
+	return 0;
+}
+
+#endif
+
+#ifdef I_USE_FACTORY_COMMAND
+int rmfile(int argc, char *argv[])
+{
+	char fn[256];
+	char buf[256];
+	FILE* fp = 0;
+
+	if (argc < 2) {
+		goto next;
+	}
+	fn[0] = 0;
+	buf[0] = 0;
+	sscanf(argv[1], "%s", fn);
+
+	if (strstr(fn, "\\") != NULL)goto next;
+	if (strstr(fn, "/") != NULL)goto next;
+	if (strstr(fn, ".txt") == NULL)goto next;
+
+	remove(fn);
+
+next:
+	sprintf(buf, "rmfile_res ok\n");
+	mychkcmd_print(buf);
+	return 0;
+}
+
+#endif
+
+
 
 //
 // オンオフをするかどうか判定

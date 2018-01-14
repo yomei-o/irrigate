@@ -21,6 +21,13 @@ int setdate(int argc, char* argv[]);
 
 int getlog(int argc, char* argv[]);
 
+#ifdef I_USE_FACTORY_COMMAND
+int getfile(int argc, char* argv[]);
+int setfile(int argc, char* argv[]);
+int rmfile(int argc, char* argv[]);
+int do_sync(int argc, char* argv[]);
+#endif
+
 int mytimer_init();
 int mytimer_done();
 int mytimer_reset();
