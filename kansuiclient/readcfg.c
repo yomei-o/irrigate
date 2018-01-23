@@ -17,13 +17,21 @@
 #endif
 #endif
 
+#ifdef __arm__
+#define RASPI
+#endif
+
+//#ifdef _WIN32
+//#define RASPI
+//#endif
+
 
 #define DEFAULT_URL "http://irrigate.sensprout.net/htdocs/kansuilogin.exe?ki=1&kp=admin"
 #define SERVER_FILE  "server.txt"
 
-#if defined(_WIN32)
-#define CFG_DIR "."
-#elif defined(RASPI)
+#if defined(RASPI)
+#define CFG_DIR "/boot"
+#elif defined(_WIN32)
 #define CFG_DIR "."
 #else
 #define CFG_DIR "."

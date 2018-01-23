@@ -11,6 +11,14 @@
 #include "ysleep.h"
 #include "cfwdipc.h"
 
+#ifdef __arm__
+#define RASPI
+#endif
+
+#ifdef _WIN32
+#define RASPI
+#endif
+
 #if defined(_WIN32) && !defined(__GNUC__)
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
@@ -23,10 +31,18 @@
 #endif
 #endif
 
-#ifdef OYAKI
-#define TIMER_BASE_DIR "."
+#ifdef RASPI
+#define TIMER_BASE_DIR "/home/admin/irrigate/kansuiclient"
 #else
 #define TIMER_BASE_DIR "."
+#endif
+
+#if defined(RASPI)
+#define CFG_DIR "/boot"
+#elif defined(_WIN32)
+#define CFG_DIR "."
+#else
+#define CFG_DIR "."
 #endif
 
 #define MAX_NUM_OF_TIMER 20
@@ -656,6 +672,7 @@ int do_sync(int argc, char *argv[])
 int setfile(int argc, char *argv[])
 {
 	char fn[256];
+	char fn2[256];
 	char buf[256];
 	char buf2[256];
 	FILE* fp = 0;
@@ -668,14 +685,44 @@ int setfile(int argc, char *argv[])
 	sscanf(argv[1], "%s", fn);
 	sscanf(argv[2], "%s", buf);
 
+
 	if (strstr(fn, "\\") != NULL)goto next;
 	if (strstr(fn, "/") != NULL)goto next;
 	if (strstr(fn, ".txt") == NULL)goto next;
 
-	fp = fopen(fn, "wt");
+first:
+	strcpy(fn2, CFG_DIR);
+	strcat(fn2, "/");
+	strcat(fn2, fn);
+
+	fp = fopen(fn2, "wt");
+	if (fp == NULL)goto next_2;
+	fprintf(fp, "%s\n", buf);
+	fclose(fp);
+	goto next;
+
+next_2:
+	strcpy(fn2, TIMER_BASE_DIR);
+	strcat(fn2, "/");
+	strcat(fn2, fn);
+
+	fp = fopen(fn2, "wt");
+	if (fp == NULL)goto next_3;
+	fprintf(fp, "%s\n", buf);
+	fclose(fp);
+	goto next;
+
+next_3:
+	strcpy(fn2, ".");
+	strcat(fn2, "/");
+	strcat(fn2, fn);
+
+	fp = fopen(fn2, "wt");
 	if (fp == NULL)goto next;
 	fprintf(fp, "%s\n", buf);
 	fclose(fp);
+	goto next;
+
 
 next:
 	sprintf(buf2, "setfile_res ok\n");
@@ -689,6 +736,7 @@ next:
 int getfile(int argc, char *argv[])
 {
 	char fn[256];
+	char fn2[256];
 	char buf[256];
 	char buf2[256];
 	FILE* fp = 0;
@@ -704,12 +752,41 @@ int getfile(int argc, char *argv[])
 	if (strstr(fn, "/") != NULL)goto next;
 	if (strstr(fn, ".txt") == NULL)goto next;
 
-	fp = fopen(fn, "rt");
+first:
+	strcpy(fn2, CFG_DIR);
+	strcat(fn2, "/");
+	strcat(fn2, fn);
+
+	fp = fopen(fn2, "rt");
+	if (fp == NULL)goto next_2;
+	fscanf(fp, "%s", buf);
+	fclose(fp);
+	goto next;
+
+next_2:
+	strcpy(fn2, TIMER_BASE_DIR);
+	strcat(fn2, "/");
+	strcat(fn2, fn);
+
+	fp = fopen(fn2, "rt");
+	if (fp == NULL)goto next_3;
+	fscanf(fp, "%s", buf);
+	fclose(fp);
+	goto next;
+
+next_3:
+	strcpy(fn2, ".");
+	strcat(fn2, "/");
+	strcat(fn2, fn);
+
+	fp = fopen(fn2, "rt");
 	if (fp == NULL)goto next;
 	fscanf(fp, "%s", buf);
 	fclose(fp);
+	goto next;
 
-next:
+ next:
+
 	sprintf(buf2, "getfile_res %s\n", buf);
 	mychkcmd_print(buf2);
 	return 0;
@@ -721,8 +798,10 @@ next:
 int rmfile(int argc, char *argv[])
 {
 	char fn[256];
+	char fn2[256];
 	char buf[256];
 	FILE* fp = 0;
+	int ret;
 
 	if (argc < 2) {
 		goto next;
@@ -734,8 +813,28 @@ int rmfile(int argc, char *argv[])
 	if (strstr(fn, "\\") != NULL)goto next;
 	if (strstr(fn, "/") != NULL)goto next;
 	if (strstr(fn, ".txt") == NULL)goto next;
+first:
+	strcpy(fn2, CFG_DIR);
+	strcat(fn2, "/");
+	strcat(fn2, fn);
 
-	remove(fn);
+	ret=remove(fn2);
+	if (ret == 0)goto next;
+
+next_2:
+	strcpy(fn2, TIMER_BASE_DIR);
+	strcat(fn2, "/");
+	strcat(fn2, fn);
+
+	ret = remove(fn2);
+	if (ret == 0)goto next;
+next_3:
+	strcpy(fn2, ".");
+	strcat(fn2, "/");
+	strcat(fn2, fn);
+
+	ret = remove(fn2);
+	if (ret == 0)goto next;
 
 next:
 	sprintf(buf, "rmfile_res ok\n");
@@ -970,7 +1069,21 @@ int main()
 
 
 #endif
+#if 0
+int main(int argc, char* argv[])
+{
+	const char* p;
+	char* p1[] = { "", "aaa.txt", "hogehoge" };
+	p = mychkcmd_get_print_buffer();
 
+	setfile(3, p1);
+	printf("result=>>%s<<\n", p);
+	getfile(3, p1);
+	printf("result=>>%s<<\n", p);
+	rmfile(3, p1);
+	printf("result=>>%s<<\n", p);
+}
+#endif
 
 
 
