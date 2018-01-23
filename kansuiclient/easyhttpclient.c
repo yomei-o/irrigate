@@ -61,6 +61,7 @@ either expressed or implied, of the FreeBSD Project.
 #define closesocket(s) close(s)
 #endif	/* unix */
 
+#define MY_SOCKET_TIMEOUT (30*1000)
 //
 // init
 //
@@ -93,6 +94,30 @@ void myhttp_done()
 // socket
 //
 
+
+static void setsockopt_timeout(int fd, int tt)
+{
+	int timeout = tt;
+	int ret;
+	struct timeval tv;
+
+	tv.tv_sec = tt / 1000;
+	tv.tv_usec = (tt % 1000) * 1000;
+#if defined(_WIN32) || defined(__CYGWIN__)
+	ret = setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&tt, (socklen_t) sizeof(tt));
+#endif	
+#ifdef unix
+	ret = setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&tv, (socklen_t) sizeof(tv));
+#endif
+	tv.tv_sec = tt / 1000;
+	tv.tv_usec = (tt % 1000) * 1000;
+#if defined(_WIN32) || defined(__CYGWIN__)
+	ret = setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tt, (socklen_t)sizeof(tt));
+#endif
+#ifdef unix
+	ret = setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, (socklen_t)sizeof(tv));
+#endif	
+}
 
 static int dualsock_create(const char* hostname, int port)
 {
@@ -461,9 +486,9 @@ static int myhttp_get_data__(const char* url, void** data, int* sz, int* rescode
 
 	if (s == -1)return ret;
 
+	setsockopt_timeout(s, MY_SOCKET_TIMEOUT);
 	//printf("connect!!\n");
 	//printf("%s", tmp);
-
 	wri = send(s, tmp, strlen(tmp), 0);
 	if (wri < 1) {
 		closesocket(s);
@@ -624,6 +649,8 @@ static int myhttp_get_data_callback__(const char* url,long long *sz,int* rescode
 	s = dualsock_create(server, port);
 
 	if (s == -1)return ret;
+
+	setsockopt_timeout(s, MY_SOCKET_TIMEOUT);
 
 	//printf("connect!!\n");
 	//printf("%s", tmp);
@@ -795,6 +822,8 @@ static int myhttp_post_data__(const char* url, void* sdata, int ssz, const char*
 
 	if (s == -1)return ret;
 
+	setsockopt_timeout(s, MY_SOCKET_TIMEOUT);
+
 	//printf("connect!!\n");
 	//printf("%s", tmp);
 
@@ -956,7 +985,7 @@ int main()
 
 	//ret = myhttp_post_data("http://127.0.0.1/test/happy/nph-connection-check.exe", "1234567890",10,"application/octet-steram",&data, &sz, &res);
 	//ret = myhttp_get_data("http://127.0.0.1/test/happy/checklogin.exe",  &data, &sz, &res);
-	ret = myhttp_get_data("http://127.0.0.1:11228/301/aaa", &data, &sz, &res);
+	ret = myhttp_get_data("http://127.0.0.1:12345/", &data, &sz, &res);
 	printf(">>%s<<\n", (char*)data);
 
 	myhttp_free_data(data);
