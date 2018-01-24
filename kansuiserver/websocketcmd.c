@@ -51,6 +51,7 @@ either expressed or implied, of the FreeBSD Project.
 #ifdef I_CHECK_KID
 #include "kansuicheck.h"
 #endif
+#include "wssvlog.h"
 
 
 #ifdef _MSC_VER
@@ -234,6 +235,9 @@ static int onopen_chat2(const char* url, void** vpp)
 		printf("OK kid \n");
 	}
 #endif
+
+	wssvlog_add("connect",url);
+
 	for (i = 0; i < MAX_WS_N; i++){
 		sprintf(suc->name1, "%d_%d",suc->share_id, i);
 		suc->forward = i;
@@ -250,7 +254,8 @@ static int onopen_chat2(const char* url, void** vpp)
 		break;
 	}
 
-
+	printf("too many same id  !!!! url=%s\n",url);
+	wssvlog_add("too many same id", url);
 
 next:
 	free(suc);
@@ -270,6 +275,7 @@ static int onclose_chat2(const char* utl, void* vp)
 	if (suc)free(suc);
 
 	//smplws_server_stop();
+	wssvlog_add("disconnect", utl);
 
 	return 0;
 
