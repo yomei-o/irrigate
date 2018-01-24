@@ -87,7 +87,7 @@ struct mychkcmd_list cmd_list[] = {
 #endif
 
 #endif
-	{ "*", dummy },
+	//{ "*", dummy },
 	{ NULL,NULL},
 };
 
@@ -110,7 +110,7 @@ void mychkcmd_execute_command(const char* cmd)
 	n=sscanf(cmd,"%s %s %s %s %s %s %s %s %s %s",
 		arg[0], arg[1], arg[2], arg[3], arg[4], arg[5], arg[6], arg[7], arg[8], arg[9]);
 	if (n < 1){
-		mychkcmd_print("error(101)");
+		//mychkcmd_print("error(101)");
 		return;
 	}
 	for (i = 0; i < 10000; i++){
@@ -124,7 +124,7 @@ void mychkcmd_execute_command(const char* cmd)
 			return;
 		}
 	}
-	mychkcmd_print("error(102)\n");
+	//mychkcmd_print("error(102)\n");
 }
 
 
