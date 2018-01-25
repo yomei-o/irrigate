@@ -1,4 +1,5 @@
 #define I_CHECK_CMD
+//#define I_DEBUG_DIRECT_CONNECT
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -267,7 +268,13 @@ int main()
 		printf("wsclient connecting...\n");
 		buf[0] = 0;
 		get_ws_url(buf, sizeof(buf));
+
+#ifdef I_DEBUG_DIRECT_CONNECT
+		strcpy(buf,"ws://127.0.0.1:12345/websocket/chat/1?ki=1&kp=admin");
+#endif
+
 		printf(">>%s<<\n", buf);
+
 
 		//s = mywebsocket_connect("ws://127.0.0.1:12345/websocket/chat/12345?ki=1&kp=admin");
 		//s = mywebsocket_connect("ws://irrigate.sensprout.net:12345/websocket/chat/12345?ki=1&kp=admin");
