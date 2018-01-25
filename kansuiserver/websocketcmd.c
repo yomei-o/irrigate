@@ -71,11 +71,13 @@ struct st_wscmd{
 	int(*onclose)(const char* utl,void* vp);
 	int(*onidle)(const char* utl, void* vp, char* out_str, int out_sz);
 	int(*ondata)(const char* utl, void* vp, const char* in_str);
+	int(*onsendok)(const char* utl, void* vp, char* out,int osz);
 };
 
 struct sw_user_chat{
 	int share_id;
 	int forward;
+	int error;
 	char name1[64];
 	char name2[64];
 	void* h1;
@@ -244,6 +246,7 @@ static int onopen_chat2(const char* url, void** vpp)
 		suc->h1 = cfwdipc_find_service(suc->name1);
 		if (suc->h1 != NULL){
 			cfwdipc_free_service(suc->h1);
+			suc->h1 = NULL;
 			continue;
 		}
 		suc->h1 = cfwdipc_start_service(suc->name1);
@@ -251,11 +254,17 @@ static int onopen_chat2(const char* url, void** vpp)
 			//printf("ws create OK >>%s<< \n",suc->name1);
 			return 0;
 		}
+		suc->h1 = NULL;
 		break;
 	}
 
 	printf("too many same id  !!!! url=%s\n",url);
 	wssvlog_add("too many same id", url);
+
+	// to send error msg changed to return 0
+	//printf("vp2=%p\n",suc);
+	suc->error = 1;
+	return 0;
 
 next:
 	free(suc);
@@ -339,11 +348,24 @@ static int ondata_chat2(const char* utl, void* vp, const char* in_str)
 }
 
 
+
+
+static int onsendok_chat2(const char* utl, void* vp, char*out,int osz)
+{
+	struct sw_user_chat* suc;
+	suc = (struct sw_user_chat*)(vp);
+	//printf("vp=%p\n", vp);
+	if (suc->error){
+		strcpy(out, "too many same connection id\n");
+		return -1;
+	}
+	return 0;
+}
 //
 //
 //
 struct st_wscmd a[] = {
-	{"/websocket/chat/",onopen_chat2,onclose_chat2,onidle_chat2,ondata_chat2},
+	{"/websocket/chat/",onopen_chat2,onclose_chat2,onidle_chat2,ondata_chat2,onsendok_chat2},
 	{NULL}
 };
 
@@ -398,6 +420,20 @@ int websocketcmd_idle(char* url, void* vp, char* out_str, int out_sz)
 		if (a[i].url == NULL)return ret;
 		if (strstr(url, a[i].url) == url){
 			if (a[i].onidle)ret = a[i].onidle(url, vp, out_str, out_sz);
+			return ret;
+		}
+	}
+	return ret;
+}
+
+int websocketcmd_sendok(char* url, void* vp,char*out,int osz)
+{
+	int i;
+	int ret = -1;
+	for (i = 0; i < 10000; i++){
+		if (a[i].url == NULL)return ret;
+		if (strstr(url, a[i].url) == url){
+			if (a[i].onidle)ret = a[i].onsendok(url, vp, out,osz);
 			return ret;
 		}
 	}

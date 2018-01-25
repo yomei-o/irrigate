@@ -40,6 +40,7 @@ int websocketcmd_open(char* url,void** vpp);
 int websocketcmd_close(char* url,void* vp);
 int websocketcmd_data(char* url, void* vp,const char* in_str);
 int websocketcmd_idle(char* url, void* vp,char* out_str, int out_sz);
+int websocketcmd_sendok(char* url, void* vp, int fd);
 
 
 #ifdef __cplusplus

@@ -29,6 +29,7 @@ either expressed or implied, of the FreeBSD Project.
 
 #define I_USE_WEBSOCKET
 #define I_USE_THREAD
+#define I_USE_USER_STATE
 
 
 #include<stdio.h>
@@ -329,6 +330,9 @@ struct child_data
 	char tmp[MAX_LINE];
 	int state;
 	int mode;
+#ifdef I_USE_USER_STATE
+	int user_state;
+#endif
 	//use by user
 	void* vp;
 

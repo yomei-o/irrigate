@@ -27,6 +27,7 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 #define I_USE_SAMPLE
+#define I_USE_USER_STATE
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -81,6 +82,9 @@ struct child_data
 	char tmp[MAX_LINE];
 	int state;
 	int mode;
+#ifdef I_USE_USER_STATE
+	int user_state;
+#endif
 	//use by user
 	void* vp;
 	// use ih ttp
@@ -125,6 +129,9 @@ void* smplws_child_websocket_init(int fd, struct child_data* cd)
 		return NULL;
 	}
 #endif
+#ifdef I_USE_USER_STATE
+	cd->user_state = 1;
+#endif
 	return ret;
 }
 
@@ -149,6 +156,9 @@ int smplws_child_websocket_parse_header(int fd, struct child_data* cd)
 	if (strcmp(key, "sec-websocket-key") == 0){
 		sscanf(val, "%s", &(cw->key));
 	}
+#ifdef I_USE_USER_STATE
+	cd->user_state = 2;
+#endif
 	return 0;
 }
 
@@ -180,6 +190,10 @@ int smplws_child_send_websocket_connection(int fd, struct child_data* cd)
 	send(fd, str, strlen(str), 0);
 	send(fd, result, strlen(result), 0);
 	send(fd, "\r\n\r\n", 4, 0);
+
+#ifdef I_USE_USER_STATE
+	cd->user_state = 3;
+#endif
 
 	return 0;
 }
@@ -275,8 +289,61 @@ int smplws_child_websocket_frame_data_recv(int fd, struct child_data* cd)
 	return 0;
 }
 
+
+
+
+static int smplws_send_data(int fd, int op, void* data, int sz_)
+{
+
+	int ret = -1, r, sz = sz_;
+	int i;
+
+	unsigned char b[2] = { 0x80, 0x00 };
+	unsigned char msk[4] = { 0, 0, 0, 0 };
+	unsigned char sb[2];
+	unsigned char tmp[1024];
+	char* p = (char*)data;
+
+	if (sz > 65536)return ret;
+
+	b[0] |= op & 0xf;
+	//b[1] = sz | 0x80;
+	b[1] = sz;
+	if (sz > 125){
+		b[1] = 0x80 | 126;
+		sb[0] = sz >> 8;
+		sb[1] = sz;
+	}
+	//for (i = 0; i < 4; i++)msk[i] = rand();
+	ret = send(fd, b, 2, 0);
+	if (ret < 2)return ret;
+	if (sz > 125){
+		ret = send(fd, sb, 2, 0);
+		if (ret < 2)return ret;
+
+	}
+	//ret = send(fd, msk, 4, 0);
+	//if (ret < 4)return ret;
+	while (sz>0){
+		int ss = sz;
+		if (ss>1024)ss = 1024;
+		for (i = 0; i < ss; i++)tmp[i] = (*p++) ^ msk[i & 3];
+		sz -= ss;
+		r = send(fd, tmp, ss, 0);
+		if (r < ss)return ret;
+	}
+	return sz_;
+}
+
+static int smplws_send_string(int fd, const char* data)
+{
+	if (data == NULL)return -1;
+	return smplws_send_data(fd, 1, (void*)data, strlen(data));
+}
+
 int smplws_child_websocket_idle(int fd, struct child_data* cd)
 {
+	//printf("state=%d  state2=%d  \n",cd->state,cd->state2);
 #ifdef I_USE_SAMPLE
 	struct child_websocket* cw = (struct child_websocket*)(cd->vp);
 	if (cw == NULL)return -1;
@@ -284,6 +351,17 @@ int smplws_child_websocket_idle(int fd, struct child_data* cd)
 		int ret = -1;
 		char out[MAX_LINE];
 		out[0] = 0;
+#ifdef I_USE_USER_STATE
+		if (cd->user_state == 3){
+			cd->user_state = 4;
+			ret = websocketcmd_sendok(cd->url, cw->vpp,out,sizeof(out));
+			if (out[0] != 0){
+				smplws_send_string(fd, out);
+			}
+			if (ret < 0)return ret;
+			return 0;
+		}
+#endif
 		ret = websocketcmd_idle(cd->url, cw->vpp, out, sizeof(out));
 		if (ret < 0)return ret;
 		if (strlen(out) < 1)return 0;
