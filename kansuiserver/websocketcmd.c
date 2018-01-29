@@ -42,6 +42,7 @@ either expressed or implied, of the FreeBSD Project.
 //    Websocket Direction is Disabled by Specs.
 //
 #define I_CHECK_KID
+#define I_USE_USER_STATE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,117 +84,6 @@ struct sw_user_chat{
 	void* h1;
 	void* h2;
 };
-
-
-//
-// following is test version1
-//
-
-static int onopen_chat(const char* url, void** vpp)
-{
-	struct sw_user_chat* suc;
-	char *p;
-	int a = 0, b = 0;
-
-	//printf("onopen_chat()\n");
-
-	if (vpp == NULL)return -1;
-	*vpp = malloc(sizeof(struct sw_user_chat));
-	if (*vpp == NULL)return -1;
-	memset(*vpp, 0, sizeof(struct sw_user_chat));
-	suc = (struct sw_user_chat*)(*vpp);
-
-	p = strchr(url, '/');
-	if (p == NULL)goto next;
-	p++;
-	p = strchr(p + 1, '/');
-	if (p == NULL)goto next;
-	p++;
-	p = strchr(p + 1, '/');
-	if (p == NULL)goto next;
-	p++;
-	sscanf(p, "%d/%d", &a, &b);
-	if (b != 0)b = 1;
-
-	suc->share_id = a;
-	suc->forward = b;
-
-	sprintf(suc->name1, "%d_%d", a, b);
-	sprintf(suc->name2, "%d_%d", a, 1 - b);
-
-	//printf("onopen_chat file=%s \n",suc->name1);
-	suc->h1 = cfwdipc_start_service(suc->name1);
-next:
-	return 0;
-}
-
-
-static int onclose_chat(const char* utl, void* vp)
-{
-	struct sw_user_chat* suc;
-	suc = (struct sw_user_chat*)(vp);
-	//printf("onclose_chat()\n");
-
-	if (suc && suc->h1){
-		cfwdipc_stop_service(suc->h1);
-	}
-	if (suc)free(suc);
-
-	//smplws_server_stop();
-
-	return 0;
-
-}
-
-static int onidle_chat(const char* utl, void* vp, char* out_str, int out_sz)
-{
-	int len;
-	struct sw_user_chat* suc;
-	suc = (struct sw_user_chat*)(vp);
-	if (suc->h1){
-		CFWDIPC_MESSAGE msg;
-		memset(&msg, 0, sizeof(msg));
-
-		//printf("ondata_chat ismessage=%s \n", suc->name1);
-		if (cfwdipc_is_message(suc->h1) == 0)return 0;
-		//printf("ondata_chat read=%s \n", suc->name1);
-		cfwdipc_get_message(suc->h1, &msg);
-		len = strlen(msg.data);
-		if (len < 1 || len >= MAX_STRING)return 0;
-
-		strncpy(out_str, msg.data, out_sz);
-		out_str[out_sz - 1] = 0;
-	}
-	return 0;
-}
-
-static int ondata_chat(const char* utl, void* vp, const char* in_str)
-{
-	struct sw_user_chat* suc;
-	suc = (struct sw_user_chat*)(vp);
-
-	//printf("ondata_chat()\n");
-
-	suc->h2 = cfwdipc_find_service(suc->name2);
-	if (suc->h2){
-		CFWDIPC_MESSAGE msg;
-		memset(&msg, 0, sizeof(msg));
-		strncpy(msg.data, in_str, MAX_STRING);
-		msg.data[MAX_STRING - 1] = 0;
-
-		cfwdipc_send_message(suc->h2, &msg);
-		cfwdipc_free_service(suc->h2);
-
-
-		//printf("ondata_chat write=%s \n", suc->name2);
-	}
-
-	suc->h2 = NULL;
-	//strncpy(out_str, in_str,out_sz);
-
-	return 0;
-}
-
 
 //
 // following is  version2
@@ -263,8 +153,10 @@ static int onopen_chat2(const char* url, void** vpp)
 
 	// to send error msg changed to return 0
 	//printf("vp2=%p\n",suc);
+#ifdef I_USE_USER_STATE
 	suc->error = 1;
 	return 0;
+#endif
 
 next:
 	free(suc);
