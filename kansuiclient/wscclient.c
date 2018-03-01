@@ -645,7 +645,7 @@ int mywebsocket_wait_time(int s,int tt, int(*f)(void* vp,int type, void* data, i
 		//mywebsocket_data(s, 1, "hogehoge", 8);
 
 		f(vp, bt1, buf, sz);
-		return 0;
+		return 1;
 	}
 	if (op == 0 || op == 1 || op == 2){
 		r=f(vp, bt1, buf, sz);

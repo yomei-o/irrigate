@@ -255,6 +255,7 @@ int main()
 	int s;
 	int ct = 0;
 	char buf[1024];
+	int tm = 0;
 #if defined(_WIN32) && !defined(__GNUC__)
 	//	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_WNDW);
 	//	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_WNDW);
@@ -268,13 +269,15 @@ int main()
 	mytimer_set_onfunc(func_on, NULL);
 	mytimer_set_offunc(func_off, NULL);
 
-	for (;;){
+	for (;;) {
+		tm = 0;
 		printf("wsclient connecting...\n");
 		buf[0] = 0;
 		get_ws_url(buf, sizeof(buf));
 
 #ifdef I_DEBUG_DIRECT_CONNECT
-		strcpy(buf,"ws://127.0.0.1:12345/websocket/chat/1?ki=1&kp=admin");
+		strcpy(buf, "ws://127.0.0.1:12345/websocket/chat/1?ki=1&kp=admin");
+		strcpy(buf, "ws://irrigate.sensprout.net:12345/websocket/chat/12345?ki=1&kp=admin");
 #endif
 
 		printf(">>%s<<\n", buf);
@@ -283,11 +286,18 @@ int main()
 		//s = mywebsocket_connect("ws://127.0.0.1:12345/websocket/chat/12345?ki=1&kp=admin");
 		//s = mywebsocket_connect("ws://irrigate.sensprout.net:12345/websocket/chat/12345?ki=1&kp=admin");
 		s = mywebsocket_connect(buf);
-		if (s != -1){
+		if (s != -1) {
+			int r;
 			printf("wsclient waiting mesages\n");
-			while (mywebsocket_wait(s, callback_func, (void*)s) >= 0){
+			while (1) {
+				tm++;
+				r = mywebsocket_wait(s, callback_func, (void*)s);
+				if (r > 0)tm = 0;
+				if (tm > 20)break;
+				//printf("r=%d  tm=%d  \n",r,tm);
+				if (r < 0)break;
 				ct++;
-				if(ct%10==0)printf(".");
+				if (ct % 10 == 0)printf(".");
 				if (ct % 600 == 0)printf("\n");
 			}
 			printf("wsclient disconnected\n");
