@@ -54,7 +54,7 @@
 
 
 //
-// ここで各ポートのON/OFのプログラムを呼ぶ
+// ON/OFF Functions
 //
 
 
@@ -65,18 +65,20 @@ static void func_on(int id, void *vp)
 
 	switch (id) {
 	case 0:
-		system("gpio -g mode 16 out");
-		system("gpio -g write 16 1");
+		system("gpio -g mode 21 out");
+		system("gpio -g write 21 1");
 		break;
 	case 1:
 		system("gpio -g mode 20 out");
 		system("gpio -g write 20 1");
 		break;
 	case 2:
-		system("gpio -g mode 21 out");
-		system("gpio -g write 21 1");
+		system("gpio -g mode 16 out");
+		system("gpio -g write 16 1");
 		break;
 	case 3:
+	system("gpio -g mode 19 out");
+	system("gpio -g write 19 1");
 		break;
 	case 4:
 		break;
@@ -90,18 +92,20 @@ static void func_off(int id, void *vp)
 
 	switch (id) {
 	case 0:
-		system("gpio -g mode 16 out");
-		system("gpio -g write 16 0");
+		system("gpio -g mode 21 out");
+		system("gpio -g write 21 0");
 		break;
 	case 1:
 		system("gpio -g mode 20 out");
 		system("gpio -g write 20 0");
 		break;
 	case 2:
-		system("gpio -g mode 21 out");
-		system("gpio -g write 21 0");
+		system("gpio -g mode 16 out");
+		system("gpio -g write 16 0");
 		break;
 	case 3:
+	system("gpio -g mode 19 out");
+	system("gpio -g write 19 0");
 		break;
 	case 4:
 		break;
@@ -299,5 +303,3 @@ int main()
 }
 
 #endif
-
-
